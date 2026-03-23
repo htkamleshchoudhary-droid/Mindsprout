@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MindSprout 🌱</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800;900&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════ RESET & BASE ══════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --mood-bg1:#2d6a4f;--mood-bg2:#52b788;--mood-accent:#95d5b2;
+  --mood-text:#fff;--mood-card:rgba(255,255,255,0.15);
+  --plant-green:#4caf50;--gold:#ffd700;
+  --transition:0.8s cubic-bezier(.4,0,.2,1);
+}
+html,body{width:100%;min-height:100%;font-family:'Quicksand',sans-serif;overflow-x:hidden}
+body{
+  background:linear-gradient(135deg,var(--mood-bg1),var(--mood-bg2));
+  transition:background var(--transition);
+  min-height:100vh;
+}
+
+/* ══════════════════ PARTICLE LAYER ══════════════════ */
+#particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;border-radius:50%;opacity:0;animation:float linear infinite}
+@keyframes float{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:0.6}90%{opacity:0.3}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+
+/* ══════════════════ SCREENS ══════════════════ */
+.screen{
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:30px 20px;position:relative;z-index:1;
+}
+.screen.active{display:flex;animation:fadeIn 0.6s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══════════════════ TOP BAR ══════════════════ */
+#topbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;
+  background:rgba(0,0,0,0.2);backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+#topbar .logo{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:1px}
+#topbar .streak-pill{
+  background:rgba(255,215,0,0.25);border:1px solid var(--gold);
+  color:var(--gold);padding:6px 14px;border-radius:50px;
+  font-weight:700;font-size:0.9rem;display:flex;align-items:center;gap:6px;
+}
+#topbar .stage-dots{display:flex;gap:8px}
+.sdot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.3);transition:.3s}
+.sdot.done{background:var(--gold)}
+.sdot.active{background:#fff;box-shadow:0 0 8px #fff}
+
+/* ══════════════════ CARDS ══════════════════ */
+.card{
+  background:rgba(255,255,255,0.15);backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,0.25);border-radius:24px;
+  padding:32px;max-width:600px;width:100%;margin:0 auto;
+  box-shadow:0 8px 40px rgba(0,0,0,0.2);
+}
+.card h1{font-family:'Baloo 2',cursive;font-size:2.2rem;font-weight:900;color:#fff;margin-bottom:8px;text-align:center}
+.card h2{font-family:'Baloo 2',cursive;font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:8px;text-align:center}
+.card p{color:rgba(255,255,255,0.85);text-align:center;line-height:1.7;font-size:1rem}
+
+/* ══════════════════ BUTTONS ══════════════════ */
+.btn{
+  display:inline-block;padding:14px 36px;border-radius:50px;border:none;cursor:pointer;
+  font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;
+  transition:transform .2s,box-shadow .2s;letter-spacing:.5px;
+}
+.btn:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.25)}
+.btn:active{transform:translateY(0)}
+.btn-primary{background:linear-gradient(135deg,#ffd700,#ff9500);color:#1a1a1a}
+.btn-secondary{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4)}
+.btn-green{background:linear-gradient(135deg,#52b788,#2d6a4f);color:#fff}
+
+/* ══════════════════ PLANT CHARACTER ══════════════════ */
+.plant-char{
+  width:100px;height:120px;position:relative;margin:0 auto 20px;
+  animation:bounce 3s ease-in-out infinite;
+}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.plant-char svg{width:100%;height:100%}
+.plant-char .eye{animation:blink 4s infinite}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}95%{transform:scaleY(0.1)}}
+
+/* ══════════════════ SPEECH BUBBLE ══════════════════ */
+.speech{
+  background:#fff;color:#333;padding:14px 20px;border-radius:18px;
+  position:relative;font-size:0.95rem;line-height:1.6;
+  max-width:480px;margin:0 auto 24px;box-shadow:0 4px 16px rgba(0,0,0,0.12);
+}
+.speech::before{
+  content:'';position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);
+  border:7px solid transparent;border-top-color:#fff;
+}
+
+/* ══════════════════ PLANT GROWTH ══════════════════ */
+#plant-growth{
+  width:200px;height:200px;margin:20px auto;position:relative;
+}
+#plant-growth svg{width:100%;height:100%;overflow:visible}
+.grow-anim{animation:growUp 1.2s ease forwards}
+@keyframes growUp{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1);transform-origin:bottom}}
+
+/* ══════════════════ MOOD THEMES ══════════════════ */
+body.mood-angry{--mood-bg1:#7b2d00;--mood-bg2:#c0392b}
+body.mood-sad{--mood-bg1:#1a3a6a;--mood-bg2:#4a6fa5}
+body.mood-anxious{--mood-bg1:#1b4332;--mood-bg2:#40916c}
+body.mood-tired{--mood-bg1:#7c5a1a;--mood-bg2:#e09f3e}
+body.mood-happy{--mood-bg1:#6b3fa0;--mood-bg2:#e040fb}
+
+/* ══════════════════ STAGE 1 – MOOD GRID ══════════════════ */
+.mood-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px;width:100%}
+.mood-btn{
+  background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.2);
+  border-radius:20px;padding:20px 12px;cursor:pointer;text-align:center;
+  transition:all .25s;color:#fff;font-family:'Baloo 2',cursive;font-weight:700;
+}
+.mood-btn:hover{background:rgba(255,255,255,0.3);transform:translateY(-4px);border-color:rgba(255,255,255,0.5)}
+.mood-btn.selected{background:rgba(255,255,255,0.35);border-color:#fff;transform:translateY(-4px)}
+.mood-btn .emoji{font-size:2.5rem;display:block;margin-bottom:6px}
+.mood-btn span{font-size:0.9rem}
+
+/* ══════════════════ STAGE 2 – PUZZLES ══════════════════ */
+#puzzle-area{width:100%;max-width:500px;margin:0 auto}
+
+/* Smash bubbles */
+.bubble-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:20px}
+.bubble{
+  width:70px;height:70px;border-radius:50%;cursor:pointer;border:3px solid rgba(255,255,255,0.5);
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;
+  transition:transform .1s;animation:bubblePop 0.5s ease;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,0.5),var(--b-color));
+}
+.bubble:hover{transform:scale(1.1)}
+.bubble.popped{animation:smash .3s forwards}
+@keyframes smash{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(0);opacity:0}}
+@keyframes bubblePop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* Color match */
+.color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px}
+.color-tile{
+  height:60px;border-radius:12px;cursor:pointer;border:3px solid transparent;
+  transition:all .2s;position:relative;overflow:hidden;
+}
+.color-tile.selected{border-color:#fff;transform:scale(1.08)}
+.color-tile.matched{animation:flash .5s forwards}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:0.5;filter:brightness(1.5)}}
+#brightness-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(255,255,255,0);pointer-events:none;z-index:50;
+  transition:background 1s;
+}
+
+/* Breathing */
+#breath-circle{
+  width:160px;height:160px;border-radius:50%;margin:20px auto;cursor:pointer;
+  background:radial-gradient(circle,rgba(255,255,255,0.4),rgba(255,255,255,0.1));
+  border:4px solid rgba(255,255,255,0.6);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:700;color:#fff;
+  box-shadow:0 0 30px rgba(255,255,255,0.2);
+  transition:transform 4s ease-in-out;
+}
+#breath-label{font-size:1.1rem;color:#fff;text-align:center;margin:10px;font-weight:600}
+#breath-progress{
+  height:8px;background:rgba(255,255,255,0.2);border-radius:8px;margin-top:20px;overflow:hidden;
+}
+#breath-bar{height:100%;background:#fff;width:0%;border-radius:8px;transition:width .5s}
+
+/* Reaction pattern */
+#pattern-display{
+  display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:20px 0;min-height:80px;
+}
+.shape{
+  width:70px;height:70px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:2rem;border-radius:12px;
+  background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);
+  transition:all .2s;
+}
+.shape:hover{background:rgba(255,255,255,0.3);transform:scale(1.1)}
+.shape.correct{background:rgba(100,255,100,0.3);border-color:#4caf50}
+.shape.wrong{background:rgba(255,100,100,0.3);border-color:#f44336;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#reaction-score{font-family:'Baloo 2',cursive;font-size:1.4rem;color:#fff;text-align:center;font-weight:700}
+
+/* ══════════════════ STAGE 3 – SOCIAL ══════════════════ */
+#scenario-box{
+  background:rgba(255,255,255,0.1);border-radius:16px;
+  padding:20px;margin:16px 0;text-align:left;
+}
+#scenario-box .scenario-label{color:rgba(255,255,255,0.7);font-size:0.85rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+#scenario-box .scenario-q{color:#fff;font-size:1rem;font-weight:600;line-height:1.6}
+.response-input{
+  width:100%;padding:14px 16px;border-radius:14px;border:2px solid rgba(255,255,255,0.3);
+  background:rgba(255,255,255,0.12);color:#fff;font-family:'Quicksand',sans-serif;
+  font-size:0.95rem;outline:none;resize:none;margin-top:12px;
+  transition:border-color .2s;
+}
+.response-input::placeholder{color:rgba(255,255,255,0.5)}
+.response-input:focus{border-color:rgba(255,255,255,0.7)}
+.feedback-box{
+  background:rgba(100,255,150,0.15);border:1px solid rgba(100,255,150,0.4);
+  border-radius:14px;padding:14px;margin-top:12px;color:#fff;font-size:0.9rem;
+  display:none;
+}
+.scenario-counter{color:rgba(255,255,255,0.7);font-size:0.9rem;text-align:center;margin-bottom:8px}
+.breath-tip{
+  background:rgba(255,255,255,0.1);border-left:3px solid rgba(255,255,255,0.5);
+  padding:10px 14px;border-radius:8px;color:rgba(255,255,255,0.8);
+  font-size:0.85rem;margin-bottom:14px;font-style:italic;
+}
+
+/* ══════════════════ STAGE 4 – FOCUS ══════════════════ */
+#game-select{display:flex;gap:16px;justify-content:center;margin:20px 0;flex-wrap:wrap}
+.game-choice{
+  background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);
+  border-radius:20px;padding:20px 28px;cursor:pointer;text-align:center;
+  color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:1rem;
+  transition:all .2s;
+}
+.game-choice:hover{background:rgba(255,255,255,0.28);transform:translateY(-4px)}
+.game-choice .gicon{font-size:2.4rem;display:block;margin-bottom:8px}
+canvas#gameCanvas{
+  border-radius:16px;border:2px solid rgba(255,255,255,0.3);
+  background:rgba(0,0,0,0.3);cursor:pointer;max-width:100%;
+}
+#game-score{
+  font-family:'Baloo 2',cursive;font-size:1.4rem;color:#fff;
+  text-align:center;font-weight:700;margin:8px 0;
+}
+#game-instruction{
+  color:rgba(255,255,255,0.8);text-align:center;font-size:0.9rem;
+  margin-bottom:12px;
+}
+
+/* ══════════════════ STAGE 5 – REWARDS ══════════════════ */
+.badge-grid{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:20px 0}
+.badge-item{
+  background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);
+  border-radius:18px;padding:16px 20px;text-align:center;min-width:110px;
+  animation:badgePop .5s ease backwards;
+}
+@keyframes badgePop{from{transform:scale(0) rotate(-10deg)}to{transform:scale(1) rotate(0)}}
+.badge-item .bicon{font-size:2.4rem;display:block}
+.badge-item .bname{color:#fff;font-size:0.8rem;font-weight:600;margin-top:4px}
+.affirmation-reveal{
+  background:linear-gradient(135deg,rgba(255,215,0,0.25),rgba(255,150,0,0.15));
+  border:2px solid rgba(255,215,0,0.5);border-radius:20px;
+  padding:28px;text-align:center;margin:20px 0;
+  animation:glowReveal 1.5s ease;
+}
+@keyframes glowReveal{from{box-shadow:0 0 0 rgba(255,215,0,0);opacity:0}to{box-shadow:0 0 30px rgba(255,215,0,0.4);opacity:1}}
+.affirmation-reveal .fruit{font-size:4rem;display:block;margin-bottom:10px;animation:spin .8s ease}
+@keyframes spin{from{transform:rotate(-20deg) scale(0)}to{transform:rotate(0) scale(1)}}
+.affirmation-reveal .quote{
+  font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:800;color:#fff;
+  line-height:1.5;
+}
+.streak-display{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  background:rgba(255,215,0,0.15);border:2px solid rgba(255,215,0,0.4);
+  border-radius:16px;padding:16px 24px;margin:16px 0;
+}
+.streak-display .snum{font-family:'Baloo 2',cursive;font-size:2.5rem;font-weight:900;color:var(--gold)}
+.streak-display .slabel{color:rgba(255,255,255,0.8);font-size:0.9rem;font-weight:600}
+
+/* ══════════════════ PROGRESS BAR ══════════════════ */
+#progress-bar-wrap{
+  width:100%;max-width:500px;margin:0 auto 20px;
+}
+.progress-track{height:8px;background:rgba(255,255,255,0.2);border-radius:8px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#ffd700,#ff9500);border-radius:8px;transition:width .8s ease}
+.progress-label{color:rgba(255,255,255,0.7);font-size:0.8rem;text-align:right;margin-top:4px}
+
+/* ══════════════════ ALREADY PLAYED ══════════════════ */
+#already-played{
+  text-align:center;padding:40px;
+}
+#already-played .big-emoji{font-size:5rem;display:block;margin-bottom:16px}
+
+/* ══════════════════ TOAST ══════════════════ */
+#toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#fff;color:#333;padding:12px 24px;border-radius:50px;
+  font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,0.2);
+  transition:transform .4s;z-index:200;white-space:nowrap;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ══════════════════ UTIL ══════════════════ */
+.mt16{margin-top:16px}.mt24{margin-top:24px}.mt8{margin-top:8px}
+.text-center{text-align:center}
+.hidden{display:none!important}
+hr.divider{border:none;border-top:1px solid rgba(255,255,255,0.15);margin:20px 0}
+</style>
+</head>
+<body>
+<div id="brightness-overlay"></div>
+
+<!-- TOP BAR -->
+<div id="topbar" class="hidden">
+  <div class="logo">🌱 MindSprout</div>
+  <div id="stage-dots" class="stage-dots">
+    <div class="sdot" id="dot-1"></div>
+    <div class="sdot" id="dot-2"></div>
+    <div class="sdot" id="dot-3"></div>
+    <div class="sdot" id="dot-4"></div>
+    <div class="sdot" id="dot-5"></div>
+  </div>
+  <div class="streak-pill" id="streak-display">🔥 <span id="streak-num">0</span></div>
+</div>
+
+<!-- PARTICLES -->
+<div id="particles"></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ═══════════════ WELCOME SCREEN ═══════════════ -->
+<div id="screen-welcome" class="screen active">
+  <div class="card" style="text-align:center;max-width:480px">
+    <div style="font-size:5rem;margin-bottom:8px">🌱</div>
+    <h1>MindSprout</h1>
+    <p style="margin:12px 0 28px">A little journey to grow your mind, one feeling at a time. Complete all 5 stages and watch your plant bloom! 🌸</p>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:16px">
+        <span style="color:rgba(255,255,255,0.75);font-size:0.85rem">🌰 Mood → 🌱 Puzzle → 🌿 Social → 🌳 Focus → 🌸 Bloom</span>
+      </div>
+      <button class="btn btn-primary" onclick="startGame()">Begin Your Journey 🌿</button>
+      <p style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-top:8px">One session per day • Progress saved automatically</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ALREADY PLAYED ═══════════════ -->
+<div id="screen-done" class="screen">
+  <div class="card" id="already-played">
+    <span class="big-emoji">🌸</span>
+    <h2>You already bloomed today!</h2>
+    <p style="margin:12px 0">Your plant is growing strong. Come back tomorrow to continue your journey.</p>
+    <div class="streak-display mt24">
+      <div>
+        <div class="snum" id="done-streak">0</div>
+        <div class="slabel">Day Streak 🔥</div>
+      </div>
+      <div style="width:1px;height:50px;background:rgba(255,255,255,0.2)"></div>
+      <div>
+        <div class="snum" id="done-total">0</div>
+        <div class="slabel">Total Sessions</div>
+      </div>
+    </div>
+    <p style="margin-top:20px;font-style:italic;color:rgba(255,255,255,0.6);font-size:0.9rem" id="done-affirmation">"Every day is a new chance to grow."</p>
+  </div>
+</div>
+
+<!-- ═══════════════ STAGE 1 – MOOD ═══════════════ -->
+<div id="screen-stage1" class="screen">
+  <div style="padding-top:70px;width:100%;max-width:560px">
+    <div class="plant-char">
+      <svg viewBox="0 0 100 120">
+        <ellipse cx="50" cy="108" rx="22" ry="7" fill="rgba(0,0,0,0.2)"/>
+        <rect x="46" y="70" width="8" height="40" rx="4" fill="#5d4037"/>
+        <ellipse cx="50" cy="62" rx="28" ry="28" fill="#2e7d32"/>
+        <ellipse cx="35" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(-20 35 50)"/>
+        <ellipse cx="65" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(20 65 50)"/>
+        <ellipse cx="50" cy="40" rx="14" ry="10" fill="#43a047"/>
+        <circle class="eye" cx="42" cy="58" r="5" fill="#fff"/>
+        <circle class="eye" cx="58" cy="58" r="5" fill="#fff"/>
+        <circle cx="43" cy="59" r="2.5" fill="#1a1a1a"/>
+        <circle cx="59" cy="59" r="2.5" fill="#1a1a1a"/>
+        <path d="M43 67 Q50 73 57 67" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="speech" id="s1-speech">Hi there! 👋 I'm Sprout. How are you feeling right now? Choose your mood and we'll grow together! 🌱</div>
+    <div class="card">
+      <h2>How are you feeling? 💭</h2>
+      <p style="font-size:0.9rem">Your answer shapes your experience today</p>
+      <div class="mood-grid" id="mood-grid">
+        <div class="mood-btn" onclick="selectMood('angry')"><span class="emoji">😡</span><span>Angry</span></div>
+        <div class="mood-btn" onclick="selectMood('sad')"><span class="emoji">😢</span><span>Sad</span></div>
+        <div class="mood-btn" onclick="selectMood('anxious')"><span class="emoji">😰</span><span>Anxious</span></div>
+        <div class="mood-btn" onclick="selectMood('tired')"><span class="emoji">😴</span><span>Tired</span></div>
+        <div class="mood-btn" onclick="selectMood('happy')"><span class="emoji">😊</span><span>Happy</span></div>
+        <div class="mood-btn" onclick="selectMood('calm')"><span class="emoji">😌</span><span>Calm</span></div>
+      </div>
+      <div id="s1-next" class="hidden mt24 text-center">
+        <div id="seed-anim" style="font-size:3rem;animation:spin .6s ease;display:inline-block">🌰</div>
+        <p style="color:rgba(255,255,255,0.8);margin:8px 0">A seed has been planted!</p>
+        <button class="btn btn-primary mt8" onclick="goToStage(2)">Start Puzzle 🧩</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STAGE 2 – PUZZLE ═══════════════ -->
+<div id="screen-stage2" class="screen">
+  <div style="padding-top:70px;width:100%;max-width:560px">
+    <div id="progress-bar-wrap" class="progress-bar-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:20%"></div></div>
+      <div class="progress-label">Stage 2 of 5</div>
+    </div>
+    <div class="plant-char">
+      <svg viewBox="0 0 100 120">
+        <ellipse cx="50" cy="108" rx="22" ry="7" fill="rgba(0,0,0,0.2)"/>
+        <rect x="46" y="70" width="8" height="40" rx="4" fill="#5d4037"/>
+        <ellipse cx="50" cy="62" rx="28" ry="28" fill="#2e7d32"/>
+        <ellipse cx="35" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(-20 35 50)"/>
+        <ellipse cx="65" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(20 65 50)"/>
+        <ellipse cx="50" cy="40" rx="14" ry="10" fill="#43a047"/>
+        <circle class="eye" cx="42" cy="58" r="5" fill="#fff"/>
+        <circle class="eye" cx="58" cy="58" r="5" fill="#fff"/>
+        <circle cx="43" cy="59" r="2.5" fill="#1a1a1a"/>
+        <circle cx="59" cy="59" r="2.5" fill="#1a1a1a"/>
+        <path d="M43 67 Q50 73 57 67" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="speech" id="s2-speech">Let's calm your mind with a little puzzle!</div>
+    <div class="card">
+      <h2 id="s2-title">Puzzle Time 🧩</h2>
+      <p id="s2-desc" style="margin-bottom:16px"></p>
+      <div id="puzzle-area"></div>
+      <div class="text-center mt24 hidden" id="s2-next">
+        <p style="color:rgba(255,255,255,0.8);margin-bottom:12px">🌱 Your sapling is sprouting!</p>
+        <button class="btn btn-primary" onclick="goToStage(3)">Next: Social Practice 🗣️</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STAGE 3 – SOCIAL ═══════════════ -->
+<div id="screen-stage3" class="screen">
+  <div style="padding-top:70px;width:100%;max-width:560px">
+    <div id="s3-progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:40%"></div></div>
+      <div class="progress-label">Stage 3 of 5</div>
+    </div>
+    <div class="plant-char">
+      <svg viewBox="0 0 100 120">
+        <ellipse cx="50" cy="108" rx="22" ry="7" fill="rgba(0,0,0,0.2)"/>
+        <rect x="46" y="70" width="8" height="40" rx="4" fill="#5d4037"/>
+        <ellipse cx="50" cy="62" rx="28" ry="28" fill="#2e7d32"/>
+        <ellipse cx="35" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(-20 35 50)"/>
+        <ellipse cx="65" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(20 65 50)"/>
+        <ellipse cx="50" cy="40" rx="14" ry="10" fill="#43a047"/>
+        <circle class="eye" cx="42" cy="58" r="5" fill="#fff"/>
+        <circle class="eye" cx="58" cy="58" r="5" fill="#fff"/>
+        <circle cx="43" cy="59" r="2.5" fill="#1a1a1a"/>
+        <circle cx="59" cy="59" r="2.5" fill="#1a1a1a"/>
+        <path d="M43 67 Q50 73 57 67" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="speech">Let's practice some real-life conversations. Don't worry if you're unsure — I'll guide you! 💬</div>
+    <div class="card">
+      <h2>Social Confidence 🌿</h2>
+      <div class="scenario-counter" id="s3-counter">Scenario 1 of 6</div>
+      <div class="breath-tip">🌬️ Take a deep breath… speak slowly… you've got this.</div>
+      <div class="scenario-box" id="scenario-box">
+        <div class="scenario-label" id="scenario-label">Scenario</div>
+        <div class="scenario-q" id="scenario-q">Loading…</div>
+      </div>
+      <textarea class="response-input" id="scenario-input" rows="3" placeholder="Type your response here…"></textarea>
+      <div class="feedback-box" id="scenario-feedback"></div>
+      <div class="text-center mt16">
+        <button class="btn btn-secondary" onclick="submitScenario()" id="s3-submit-btn">Submit Response ✉️</button>
+        <button class="btn btn-green mt8 hidden" onclick="nextScenario()" id="s3-next-btn">Next Scenario →</button>
+      </div>
+      <div class="text-center mt24 hidden" id="s3-done">
+        <p style="color:rgba(255,255,255,0.8);margin-bottom:12px">🌿 Your plant is growing with confidence!</p>
+        <button class="btn btn-primary" onclick="goToStage(4)">Next: Focus Training 🎯</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STAGE 4 – FOCUS ═══════════════ -->
+<div id="screen-stage4" class="screen">
+  <div style="padding-top:70px;width:100%;max-width:560px">
+    <div class="progress-track"><div class="progress-fill" style="width:60%"></div></div>
+    <div class="progress-label">Stage 4 of 5</div>
+    <div class="plant-char">
+      <svg viewBox="0 0 100 120">
+        <ellipse cx="50" cy="108" rx="22" ry="7" fill="rgba(0,0,0,0.2)"/>
+        <rect x="46" y="70" width="8" height="40" rx="4" fill="#5d4037"/>
+        <ellipse cx="50" cy="62" rx="28" ry="28" fill="#2e7d32"/>
+        <ellipse cx="35" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(-20 35 50)"/>
+        <ellipse cx="65" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(20 65 50)"/>
+        <ellipse cx="50" cy="40" rx="14" ry="10" fill="#43a047"/>
+        <circle class="eye" cx="42" cy="58" r="5" fill="#fff"/>
+        <circle class="eye" cx="58" cy="58" r="5" fill="#fff"/>
+        <circle cx="43" cy="59" r="2.5" fill="#1a1a1a"/>
+        <circle cx="59" cy="59" r="2.5" fill="#1a1a1a"/>
+        <path d="M43 67 Q50 73 57 67" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="speech">Let's train your focus. Stay calm and pay attention to the details! 🎯</div>
+    <div class="card">
+      <h2>Focus Training 🌳</h2>
+      <div id="game-select">
+        <div class="game-choice" onclick="startFocusGame('firefly')">
+          <span class="gicon">🪲</span>
+          Firefly Focus<br><small style="font-weight:400;font-size:0.8rem">Tap only the blue fireflies</small>
+        </div>
+        <div class="game-choice" onclick="startFocusGame('leaves')">
+          <span class="gicon">🍃</span>
+          Falling Leaves<br><small style="font-weight:400;font-size:0.8rem">Catch only the green leaves</small>
+        </div>
+      </div>
+      <div id="focus-game-area" class="hidden">
+        <div id="game-score">Score: 0 / 15</div>
+        <div id="game-instruction"></div>
+        <canvas id="gameCanvas" width="480" height="300"></canvas>
+        <p id="game-hint" style="font-size:0.8rem;color:rgba(255,255,255,0.6);text-align:center;margin-top:8px"></p>
+      </div>
+      <div class="text-center mt24 hidden" id="s4-next">
+        <p style="color:rgba(255,255,255,0.8);margin-bottom:12px">🌳 Your plant is strong and tall!</p>
+        <button class="btn btn-primary" onclick="goToStage(5)">Collect Your Rewards 🌸</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STAGE 5 – REWARDS ═══════════════ -->
+<div id="screen-stage5" class="screen">
+  <div style="padding-top:70px;width:100%;max-width:560px">
+    <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+    <div class="progress-label">Complete! 🎉</div>
+    <div class="plant-char">
+      <svg viewBox="0 0 100 120">
+        <ellipse cx="50" cy="108" rx="22" ry="7" fill="rgba(0,0,0,0.2)"/>
+        <rect x="46" y="70" width="8" height="40" rx="4" fill="#5d4037"/>
+        <ellipse cx="50" cy="62" rx="28" ry="28" fill="#2e7d32"/>
+        <ellipse cx="35" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(-20 35 50)"/>
+        <ellipse cx="65" cy="50" rx="16" ry="12" fill="#388e3c" transform="rotate(20 65 50)"/>
+        <ellipse cx="50" cy="40" rx="14" ry="10" fill="#43a047"/>
+        <circle cx="50" cy="25" r="10" fill="#e91e8c"/>
+        <circle cx="38" cy="30" r="7" fill="#ff4eb8"/>
+        <circle cx="62" cy="30" r="7" fill="#ff4eb8"/>
+        <circle class="eye" cx="42" cy="58" r="5" fill="#fff"/>
+        <circle class="eye" cx="58" cy="58" r="5" fill="#fff"/>
+        <circle cx="43" cy="59" r="2.5" fill="#1a1a1a"/>
+        <circle cx="59" cy="59" r="2.5" fill="#1a1a1a"/>
+        <path d="M43 68 Q50 75 57 68" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="speech">Amazing work today! Your plant has fully bloomed! 🌸 You should be so proud!</div>
+    <div class="card">
+      <h2>Today's Achievements 🏆</h2>
+      <div class="badge-grid" id="badge-display"></div>
+      <div class="affirmation-reveal" id="affirmation-box">
+        <span class="fruit" id="affirmation-fruit">🍎</span>
+        <div class="quote" id="affirmation-quote">"Growth happens one small step at a time."</div>
+      </div>
+      <div class="streak-display">
+        <div>
+          <div class="snum" id="final-streak">0</div>
+          <div class="slabel">Day Streak 🔥</div>
+        </div>
+        <div style="width:1px;height:50px;background:rgba(255,255,255,0.2)"></div>
+        <div>
+          <div class="snum" id="final-total">0</div>
+          <div class="slabel">Total Sessions</div>
+        </div>
+      </div>
+      <p style="color:rgba(255,255,255,0.7);text-align:center;font-size:0.9rem;margin-top:12px">
+        Come back tomorrow to keep your streak going! 🌱
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════ */
+const API = 'http://localhost:5000/api';
+
+/* ══════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════ */
+let STATE = {
+  deviceId: null,
+  mood: null,
+  stage: 0,
+  streak: 0,
+  totalSessions: 0,
+  badges: [],
+  sessionId: null,
+};
+
+/* ══════════════════════════════════════════════════
+   DEVICE ID
+══════════════════════════════════════════════════ */
+function getDeviceId() {
+  let id = localStorage.getItem('mindsprout_device_id');
+  if (!id) {
+    id = 'dev_' + Math.random().toString(36).substr(2,9) + '_' + Date.now();
+    localStorage.setItem('mindsprout_device_id', id);
+  }
+  return id;
+}
+
+/* ══════════════════════════════════════════════════
+   API HELPERS
+══════════════════════════════════════════════════ */
+async function apiGet(path) {
+  try {
+    const r = await fetch(API + path);
+    return await r.json();
+  } catch(e) { return null; }
+}
+async function apiPost(path, data) {
+  try {
+    const r = await fetch(API + path, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+/* ══════════════════════════════════════════════════
+   AUDIO ENGINE (Web Audio API)
+══════════════════════════════════════════════════ */
+let audioCtx = null, masterGain = null, activeNodes = [];
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.12;
+    masterGain.connect(audioCtx.destination);
+  }
+}
+
+function stopAudio() {
+  activeNodes.forEach(n => { try{ n.stop(); }catch(e){} });
+  activeNodes = [];
+}
+
+function playTone(freq, type='sine', duration=null, gainVal=0.1) {
+  initAudio();
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  g.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+  osc.connect(g); g.connect(masterGain);
+  osc.start();
+  if (duration) { osc.stop(audioCtx.currentTime + duration); }
+  else { activeNodes.push(osc); }
+  return osc;
+}
+
+function playAmbient(mood) {
+  stopAudio(); initAudio();
+  const configs = {
+    angry:   [{f:80,t:'sawtooth',g:0.08},{f:120,t:'triangle',g:0.05}],
+    sad:     [{f:220,t:'sine',g:0.07},{f:165,t:'sine',g:0.05}],
+    anxious: [{f:396,t:'sine',g:0.06},{f:528,t:'sine',g:0.04}],
+    tired:   [{f:440,t:'sine',g:0.07},{f:330,t:'triangle',g:0.05}],
+    happy:   [{f:523,t:'sine',g:0.07},{f:659,t:'triangle',g:0.05}],
+    calm:    [{f:360,t:'sine',g:0.06},{f:480,t:'sine',g:0.04}],
+  };
+  const cfgs = configs[mood] || configs.calm;
+  cfgs.forEach(c => {
+    const osc = playTone(c.f, c.t, null, c.g);
+    // LFO for gentle pulsing
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.frequency.value = 0.2;
+    lfoGain.gain.value = 10;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    lfo.start();
+    activeNodes.push(lfo);
+  });
+}
+
+function playSfx(type) {
+  initAudio();
+  if (type === 'pop') { playTone(800,'sine',0.1,0.2); playTone(600,'sine',0.08,0.15); }
+  if (type === 'match') { [523,659,784].forEach((f,i) => setTimeout(()=>playTone(f,'sine',0.15,0.15),i*80)); }
+  if (type === 'tap') { playTone(1000,'sine',0.05,0.1); }
+  if (type === 'correct') { [660,784,880].forEach((f,i) => setTimeout(()=>playTone(f,'triangle',0.12,0.12),i*60)); }
+  if (type === 'wrong') { playTone(200,'sawtooth',0.15,0.15); }
+}
+
+/* ══════════════════════════════════════════════════
+   PARTICLES
+══════════════════════════════════════════════════ */
+function createParticles(mood) {
+  const container = document.getElementById('particles');
+  container.innerHTML = '';
+  const colors = {
+    angry:['#ff6b35','#ff4500','#ff9500'],
+    sad:['#6fa8dc','#a4c2f4','#9fc5e8'],
+    anxious:['#93c47d','#6aa84f','#b6d7a8'],
+    tired:['#ffd966','#f6b26b','#ffe599'],
+    happy:['#ea4c89','#9b59b6','#ffd700'],
+    calm:['#76d7c4','#a8e6cf','#88d8b0'],
+  };
+  const cols = colors[mood] || colors.calm;
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random()*10+6;
+    p.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;
+      background:${cols[Math.floor(Math.random()*cols.length)]};
+      animation-duration:${Math.random()*12+8}s;
+      animation-delay:${Math.random()*8}s;
+    `;
+    container.appendChild(p);
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   MOOD THEME
+══════════════════════════════════════════════════ */
+const moodGradients = {
+  angry:  ['#7b2d00','#c0392b'],
+  sad:    ['#1a3a6a','#4a6fa5'],
+  anxious:['#1b4332','#40916c'],
+  tired:  ['#7c5a1a','#e09f3e'],
+  happy:  ['#6b3fa0','#e040fb'],
+  calm:   ['#2d6a4f','#52b788'],
+};
+
+function applyMoodTheme(mood) {
+  document.body.className = '';
+  document.body.classList.add('mood-' + mood);
+  const [c1,c2] = moodGradients[mood] || moodGradients.calm;
+  document.body.style.background = `linear-gradient(135deg,${c1},${c2})`;
+  createParticles(mood);
+  playAmbient(mood);
+}
+
+/* ══════════════════════════════════════════════════
+   SCREEN NAVIGATION
+══════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function updateDots(stage) {
+  for(let i=1;i<=5;i++){
+    const d = document.getElementById('dot-'+i);
+    d.className = 'sdot' + (i < stage ? ' done' : (i === stage ? ' active' : ''));
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ══════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════ */
+async function init() {
+  STATE.deviceId = getDeviceId();
+  const data = await apiGet('/user/' + STATE.deviceId);
+  if (data) {
+    STATE.streak = data.user?.streak || 0;
+    STATE.totalSessions = data.user?.total_sessions || 0;
+    STATE.badges = data.badges || [];
+    document.getElementById('streak-num').textContent = STATE.streak;
+    if (data.already_played_today) {
+      document.getElementById('done-streak').textContent = STATE.streak;
+      document.getElementById('done-total').textContent = STATE.totalSessions;
+      showScreen('screen-done');
+      return;
+    }
+  }
+}
+
+async function startGame() {
+  document.getElementById('topbar').classList.remove('hidden');
+  showScreen('screen-stage1');
+  updateDots(1);
+}
+
+/* ══════════════════════════════════════════════════
+   STAGE 1 – MOOD SELECTION
+══════════════════════════════════════════════════ */
+function selectMood(mood) {
+  STATE.mood = mood;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  applyMoodTheme(mood);
+
+  const speeches = {
+    angry:"I see you're feeling angry. Let's channel that energy into something positive! 💪",
+    sad:"It's okay to feel sad. We'll brighten your world step by step 🌈",
+    anxious:"Feeling anxious? Let's breathe together and take it one step at a time 🌬️",
+    tired:"Low energy today? Let's gently wake up your mind 🌟",
+    happy:"What a great mood! Let's make the most of it! 🎉",
+    calm:"Nice and calm — perfect for growth 🌿",
+  };
+  document.getElementById('s1-speech').textContent = speeches[mood] || speeches.calm;
+  document.getElementById('s1-next').classList.remove('hidden');
+}
+
+/* ══════════════════════════════════════════════════
+   STAGE ROUTER
+══════════════════════════════════════════════════ */
+async function goToStage(n) {
+  STATE.stage = n;
+  updateDots(n);
+
+  // Save progress
+  await apiPost('/session/progress', {
+    device_id: STATE.deviceId,
+    stages_completed: n - 1,
+    completed: n > 5
+  });
+
+  if (n === 2) { showScreen('screen-stage2'); initStage2(); }
+  else if (n === 3) { showScreen('screen-stage3'); initStage3(); }
+  else if (n === 4) { showScreen('screen-stage4'); }
+  else if (n === 5) { showScreen('screen-stage5'); initStage5(); }
+}
+
+/* ══════════════════════════════════════════════════
+   STAGE 2 – PUZZLES
+══════════════════════════════════════════════════ */
+function initStage2() {
+  const cfg = {
+    angry:   {title:'Release the Tension 💥', desc:'Pop all the bubbles to release tension!', fn:initSmash},
+    sad:     {title:'Brighten Your World 🎨', desc:'Match 3 tiles of the same color to light up the screen!', fn:initColorMatch},
+    anxious: {title:'Breathing Rhythm 🌬️', desc:'Follow the circle. Tap when it reaches the markers.', fn:initBreathing},
+    tired:   {title:'Quick Reaction ⚡', desc:'Remember the pattern and pick the correct shape!', fn:initReaction},
+    happy:   {title:'Colorful Matching 🎨', desc:'Match tiles of the same color!', fn:initColorMatch},
+    calm:    {title:'Breathing Rhythm 🌬️', desc:'Follow the calm breathing exercise.', fn:initBreathing},
+  };
+  const c = cfg[STATE.mood] || cfg.calm;
+  document.getElementById('s2-title').textContent = c.title;
+  document.getElementById('s2-desc').textContent = c.desc;
+  document.getElementById('puzzle-area').innerHTML = '';
+  document.getElementById('s2-next').classList.add('hidden');
+
+  const speeches = {
+    angry:"Let's crush those bubbles and release the tension! 💥",
+    sad:"Matching colors will brighten your screen and your mood! 🌈",
+    anxious:"Follow the circle and breathe with me. You're safe here 🌬️",
+    tired:"Quick! Remember the shapes. Your brain is waking up! ⚡",
+    happy:"Let's make a colorful masterpiece! 🎨",
+    calm:"Breathe in… breathe out… feel the calm 🌿",
+  };
+  document.getElementById('s2-speech').textContent = speeches[STATE.mood] || speeches.calm;
+  c.fn();
+}
+
+/* Smash Bubbles (Angry) */
+function initSmash() {
+  const area = document.getElementById('puzzle-area');
+  area.innerHTML = '<div class="bubble-grid" id="bub-grid"></div><div id="bub-count" style="text-align:center;color:#fff;font-family:Baloo 2,cursive;font-size:1.2rem;font-weight:700;margin-top:8px">Pop them all! 💥</div>';
+  const grid = document.getElementById('bub-grid');
+  const emojis = ['😤','🔴','⭕','🟠'];
+  const colors = ['#e74c3c','#e67e22','#c0392b','#d35400','#e74c3c'];
+  let count = 0; const total = 12;
+
+  for(let i=0;i<total;i++){
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    b.style.setProperty('--b-color', colors[i % colors.length]);
+    b.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    b.onclick = function(){
+      if(b.classList.contains('popped')) return;
+      b.classList.add('popped');
+      playSfx('pop');
+      count++;
+      if(count >= total){ setTimeout(()=>{ showToast('All bubbles popped! Great job! 💥'); document.getElementById('s2-next').classList.remove('hidden'); },400); }
+    };
+    grid.appendChild(b);
+  }
+}
+
+/* Color Match (Sad/Happy) */
+function initColorMatch() {
+  const area = document.getElementById('puzzle-area');
+  const colors = ['#e74c3c','#3498db','#2ecc71','#f1c40f','#9b59b6','#e67e22','#1abc9c','#e91e63'];
+  let pairs = []; let selected = []; let matched = 0;
+  const total = 8;
+
+  for(let i=0;i<total/2;i++){ pairs.push(colors[i],colors[i]); }
+  pairs = pairs.sort(()=>Math.random()-0.5);
+
+  area.innerHTML = '<div class="color-grid" id="color-grid"></div><div id="match-msg" style="text-align:center;color:#fff;font-family:Baloo 2,cursive;font-size:1.1rem;margin-top:10px">Match pairs of the same color!</div>';
+  const grid = document.getElementById('color-grid');
+
+  pairs.forEach((col,i) => {
+    const t = document.createElement('div');
+    t.className = 'color-tile';
+    t.style.background = col;
+    t.dataset.color = col;
+    t.dataset.idx = i;
+    t.onclick = function(){
+      if(t.classList.contains('matched-done') || selected.length>=2) return;
+      t.classList.add('selected');
+      selected.push(t);
+      if(selected.length===2){
+        if(selected[0].dataset.color === selected[1].dataset.color && selected[0].dataset.idx !== selected[1].dataset.idx){
+          playSfx('match');
+          selected.forEach(s=>{ s.classList.add('matched','matched-done'); });
+          matched++;
+          // Brighten screen
+          const brightness = Math.round((matched/(total/2))*0.25*100)/100;
+          document.getElementById('brightness-overlay').style.background = `rgba(255,255,255,${brightness})`;
+          selected = [];
+          if(matched >= total/2){ setTimeout(()=>{ document.getElementById('brightness-overlay').style.background='rgba(255,255,255,0)'; showToast('Brilliant! Your world is brighter! 🌈'); document.getElementById('s2-next').classList.remove('hidden'); },600); }
+        } else {
+          setTimeout(()=>{ selected.forEach(s=>s.classList.remove('selected')); selected=[]; },600);
+        }
+      }
+    };
+    grid.appendChild(t);
+  });
+}
+
+/* Breathing (Anxious/Calm) */
+let breathInterval = null;
+function initBreathing() {
+  const area = document.getElementById('puzzle-area');
+  area.innerHTML = `
+    <div id="breath-label">Get ready…</div>
+    <div id="breath-circle">Breathe</div>
+    <div id="breath-progress"><div id="breath-bar"></div></div>
+    <div style="text-align:center;color:rgba(255,255,255,0.7);font-size:0.85rem;margin-top:10px">Complete 5 breathing cycles</div>
+  `;
+  const circle = document.getElementById('breath-circle');
+  const label = document.getElementById('breath-label');
+  const bar = document.getElementById('breath-bar');
+  let cycles = 0; const total = 5;
+  let phase = 'inhale';
+
+  setTimeout(() => {
+    breathInterval = setInterval(() => {
+      if(phase === 'inhale'){
+        circle.style.transform = 'scale(1.5)';
+        label.textContent = '🌬️ Inhale slowly…';
+        circle.textContent = 'Breathe In';
+        phase = 'hold';
+      } else if(phase === 'hold'){
+        label.textContent = '⏸ Hold…';
+        circle.textContent = 'Hold';
+        phase = 'exhale';
+      } else {
+        circle.style.transform = 'scale(1)';
+        label.textContent = '😮‍💨 Exhale…';
+        circle.textContent = 'Breathe Out';
+        phase = 'inhale';
+        cycles++;
+        bar.style.width = (cycles/total*100)+'%';
+        playSfx('tap');
+        if(cycles >= total){
+          clearInterval(breathInterval);
+          setTimeout(()=>{ showToast('Amazing! You are calm and centered 🌿'); document.getElementById('s2-next').classList.remove('hidden'); },1000);
+        }
+      }
+    }, 3500);
+  }, 1000);
+}
+
+/* Reaction (Tired) */
+function initReaction() {
+  const area = document.getElementById('puzzle-area');
+  const shapes = ['🔴','🔵','🟡','🟢','🔷','🟠'];
+  let score = 0; let target = ''; let round = 0; const totalRounds = 8;
+
+  area.innerHTML = `
+    <div id="reaction-score">Round 1 / ${totalRounds}</div>
+    <div id="rTarget" style="text-align:center;color:rgba(255,255,255,0.7);font-size:0.9rem;margin:8px 0">Watch for the pattern!</div>
+    <div id="pattern-display"></div>
+    <div id="choices-area" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px"></div>
+  `;
+
+  function nextRound(){
+    if(round >= totalRounds){ setTimeout(()=>{ showToast(`Great focus! ${score}/${totalRounds} correct! ⚡`); document.getElementById('s2-next').classList.remove('hidden'); },400); return; }
+    round++;
+    document.getElementById('reaction-score').textContent = `Round ${round} / ${totalRounds}`;
+    const pattern = document.getElementById('pattern-display');
+    const choices = document.getElementById('choices-area');
+    pattern.innerHTML = ''; choices.innerHTML = '';
+
+    const count = Math.min(2+Math.floor(round/3),4);
+    const shown = [];
+    for(let i=0;i<count;i++) shown.push(shapes[Math.floor(Math.random()*shapes.length)]);
+    target = shown[Math.floor(Math.random()*shown.length)];
+
+    document.getElementById('rTarget').textContent = 'Remember this pattern:';
+    shown.forEach(s=>{ const d=document.createElement('div'); d.className='shape'; d.textContent=s; pattern.appendChild(d); });
+
+    setTimeout(()=>{
+      pattern.innerHTML='';
+      document.getElementById('rTarget').textContent = `Which one was shown? Pick: ${target}`;
+      const opts = [target,...shapes.filter(s=>s!==target).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
+      opts.forEach(o=>{
+        const d=document.createElement('div'); d.className='shape'; d.textContent=o;
+        d.onclick=()=>{
+          if(o===target){ d.classList.add('correct'); playSfx('correct'); score++; }
+          else { d.classList.add('wrong'); playSfx('wrong'); }
+          document.querySelectorAll('#choices-area .shape').forEach(x=>x.onclick=null);
+          setTimeout(nextRound,600);
+        };
+        choices.appendChild(d);
+      });
+    }, 1800);
+  }
+  nextRound();
+}
+
+/* ══════════════════════════════════════════════════
+   STAGE 3 – SOCIAL CONFIDENCE
+══════════════════════════════════════════════════ */
+const SCENARIOS = [
+  {
+    label:'Giving a Compliment',
+    q:'Your friend just gave a great presentation. What would you say to them?',
+    hint:'You can say something about their effort or clarity!',
+    feedbacks:['Nice! Compliments make people feel appreciated 💛','Great! Specific compliments feel even more genuine 😊','That sounded warm and kind! 🌟'],
+  },
+  {
+    label:'Introducing Yourself',
+    q:'You just joined a new class and someone new sits next to you. How do you introduce yourself?',
+    hint:'Share your name and maybe one thing you enjoy!',
+    feedbacks:['Great! Saying your name clearly helps people remember you 👋','Lovely intro! Adding a fun fact makes it memorable 🎉','Confident and friendly — well done! 🌸'],
+  },
+  {
+    label:'Asking for Directions',
+    q:'You are in a new place and are lost. How would you ask someone for directions?',
+    hint:'Try starting with "Excuse me…" to be polite!',
+    feedbacks:['Very polite! Good job asking clearly 🗺️','Nice! Politeness always helps 😊','You sounded calm and clear — great job! 🌟'],
+  },
+  {
+    label:'Joining a Group Conversation',
+    q:'Some friends are chatting about a movie you also watched. How do you join in?',
+    hint:'Share your opinion about the movie!',
+    feedbacks:['Nice! Adding your view helps you join naturally 🎬','Great! Shared experiences make great conversation starters 💬','Confident contribution — well done! 🌟'],
+  },
+  {
+    label:'Asking for Help',
+    q:"You didn't understand a homework question. What would you say to your teacher?",
+    hint:'It\'s okay to ask — teachers love when students seek help!',
+    feedbacks:['Good! Asking for help is a real strength 📚','Perfect! Clear and polite — your teacher will be happy to help 🍎','Excellent! Seeking help shows confidence 🌟'],
+  },
+  {
+    label:'Saying No Politely',
+    q:'A friend asks you to skip class to hang out. How do you say no kindly?',
+    hint:'Be honest but kind — you can suggest another time!',
+    feedbacks:['Great! You said no in a respectful way 💪','Perfect — firm but friendly is the best approach! 🌸','Well done! Setting boundaries is a sign of confidence 🌟'],
+  },
+];
+
+let scenarioIdx = 0;
+
+function initStage3() {
+  scenarioIdx = 0;
+  loadScenario();
+}
+
+function loadScenario() {
+  const s = SCENARIOS[scenarioIdx];
+  document.getElementById('s3-counter').textContent = `Scenario ${scenarioIdx+1} of ${SCENARIOS.length}`;
+  document.getElementById('scenario-label').textContent = s.label;
+  document.getElementById('scenario-q').textContent = s.q;
+  document.getElementById('scenario-input').value = '';
+  document.getElementById('scenario-feedback').style.display = 'none';
+  document.getElementById('scenario-feedback').textContent = '';
+  document.getElementById('s3-submit-btn').classList.remove('hidden');
+  document.getElementById('s3-next-btn').classList.add('hidden');
+  document.getElementById('s3-done').classList.add('hidden');
+}
+
+function submitScenario() {
+  const val = document.getElementById('scenario-input').value.trim();
+  if(!val){ showToast('Please type something first! 💬'); return; }
+  const s = SCENARIOS[scenarioIdx];
+  const fb = s.feedbacks[Math.floor(Math.random()*s.feedbacks.length)];
+  const fbBox = document.getElementById('scenario-feedback');
+  fbBox.textContent = '✨ ' + fb;
+  fbBox.style.display = 'block';
+  playSfx('correct');
+  document.getElementById('s3-submit-btn').classList.add('hidden');
+  if(scenarioIdx < SCENARIOS.length-1){
+    document.getElementById('s3-next-btn').classList.remove('hidden');
+  } else {
+    document.getElementById('s3-done').classList.remove('hidden');
+    awardBadge('brave_speaker');
+  }
+}
+
+function nextScenario() {
+  scenarioIdx++;
+  if(scenarioIdx < SCENARIOS.length) loadScenario();
+}
+
+/* ══════════════════════════════════════════════════
+   STAGE 4 – FOCUS GAMES
+══════════════════════════════════════════════════ */
+let animFrame = null;
+
+function startFocusGame(type) {
+  document.getElementById('game-select').classList.add('hidden');
+  document.getElementById('focus-game-area').classList.remove('hidden');
+  if(animFrame) cancelAnimationFrame(animFrame);
+  if(type==='firefly') initFirefly();
+  else initLeaves();
+}
+
+/* Firefly */
+function initFirefly() {
+  document.getElementById('game-instruction').textContent = '🪲 Tap ONLY the blue fireflies! Ignore the others.';
+  document.getElementById('game-hint').textContent = 'Yellow and red ones are distractions!';
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let score = 0, misses = 0; const target = 15;
+
+  const flies = [];
+  for(let i=0;i<16;i++){
+    flies.push({
+      x: Math.random()*W, y: Math.random()*H,
+      dx: (Math.random()-.5)*1.2, dy: (Math.random()-.5)*1.2,
+      r: Math.random()*6+8,
+      color: ['blue','blue','yellow','red'][Math.floor(Math.random()*4)],
+      glow: Math.random()*Math.PI*2,
+    });
+  }
+
+  canvas.onclick = function(e){
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX-rect.left)*(W/rect.width);
+    const my = (e.clientY-rect.top)*(H/rect.height);
+    flies.forEach((f,i) => {
+      const dx = mx-f.x, dy = my-f.y;
+      if(Math.sqrt(dx*dx+dy*dy) < f.r+10){
+        if(f.color==='blue'){ score++; playSfx('tap'); flies.splice(i,1); flies.push({x:Math.random()*W,y:20,dx:(Math.random()-.5)*1.2,dy:(Math.random()-.5)*1.2,r:Math.random()*6+8,color:['blue','blue','yellow','red'][Math.floor(Math.random()*4)],glow:0}); document.getElementById('game-score').textContent=`Score: ${score} / ${target}`; if(score>=target){ canvas.onclick=null; cancelAnimationFrame(animFrame); showToast('Focus Master! 🎯'); awardBadge('focus_master'); document.getElementById('s4-next').classList.remove('hidden'); } }
+        else { misses++; playSfx('wrong'); showToast('Focus on the blue ones! 🔵'); }
+      }
+    });
+  };
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0a0a2e'; ctx.fillRect(0,0,W,H);
+    // Stars
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    for(let i=0;i<40;i++){ ctx.beginPath(); ctx.arc((i*73)%W,(i*37)%H,0.8,0,Math.PI*2); ctx.fill(); }
+    // Trees silhouette
+    ctx.fillStyle='#0d2b0d';
+    for(let i=0;i<8;i++){ const tx=(i*65+20)%W; ctx.beginPath(); ctx.moveTo(tx,H); ctx.lineTo(tx-15,H-60); ctx.lineTo(tx+15,H-60); ctx.fill(); }
+
+    flies.forEach(f=>{
+      f.glow += 0.06; f.x += f.dx; f.y += f.dy;
+      if(f.x<0||f.x>W) f.dx*=-1; if(f.y<0||f.y>H) f.dy*=-1;
+      const glowAlpha = 0.5+0.5*Math.sin(f.glow);
+      const cols = {blue:'#00bfff',yellow:'#ffd700',red:'#ff4444'};
+      const c = cols[f.color];
+      ctx.shadowColor=c; ctx.shadowBlur=15*glowAlpha;
+      ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
+      ctx.fillStyle=c; ctx.globalAlpha=0.7+0.3*glowAlpha; ctx.fill();
+      ctx.globalAlpha=1; ctx.shadowBlur=0;
+    });
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* Falling Leaves */
+function initLeaves() {
+  document.getElementById('game-instruction').textContent = '🍃 Catch ONLY the green leaves! Let others pass.';
+  document.getElementById('game-hint').textContent = 'Red, yellow, and brown ones are distractions!';
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let score = 0; const target = 15;
+
+  const leaves = [];
+  function spawnLeaf(){
+    const colors = ['green','green','red','yellow','brown'];
+    leaves.push({ x:Math.random()*W, y:-20, dy:Math.random()*1.5+0.8, dx:(Math.random()-.5)*0.8, color:colors[Math.floor(Math.random()*colors.length)], rot:0, drot:(Math.random()-.5)*0.04, r:16 });
+  }
+  for(let i=0;i<8;i++) spawnLeaf();
+
+  canvas.onclick = function(e){
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX-rect.left)*(W/rect.width);
+    const my = (e.clientY-rect.top)*(H/rect.height);
+    leaves.forEach((l,i)=>{
+      if(Math.abs(mx-l.x)<l.r+8 && Math.abs(my-l.y)<l.r+8){
+        if(l.color==='green'){ score++; playSfx('tap'); leaves.splice(i,1); spawnLeaf(); document.getElementById('game-score').textContent=`Score: ${score} / ${target}`; if(score>=target){ canvas.onclick=null; cancelAnimationFrame(animFrame); showToast('Focus Master! 🍃'); awardBadge('focus_master'); document.getElementById('s4-next').classList.remove('hidden'); } }
+        else { playSfx('wrong'); showToast('Only green leaves! 🟢'); }
+      }
+    });
+  };
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Sky gradient
+    const grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#87ceeb'); grad.addColorStop(1,'#e8f5e9');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+
+    leaves.forEach((l,i)=>{
+      l.y+=l.dy; l.x+=l.dx; l.rot+=l.drot;
+      if(l.y>H+20){ leaves.splice(i,1); spawnLeaf(); return; }
+      const cols={green:'#2ecc71',red:'#e74c3c',yellow:'#f1c40f',brown:'#a0522d'};
+      ctx.save();
+      ctx.translate(l.x,l.y); ctx.rotate(l.rot);
+      ctx.fillStyle=cols[l.color];
+      ctx.beginPath();
+      ctx.ellipse(0,0,l.r,l.r*0.6,0,0,Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=1; ctx.stroke();
+      ctx.restore();
+    });
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ══════════════════════════════════════════════════
+   STAGE 5 – REWARDS
+══════════════════════════════════════════════════ */
+const AFFIRMATIONS = [
+  {fruit:'🍎', quote:'Growth happens one small step at a time.'},
+  {fruit:'🌸', quote:'You are stronger than you think.'},
+  {fruit:'🍊', quote:'Every day is a new chance to grow.'},
+  {fruit:'🌹', quote:'Be kind to yourself — you are doing amazing.'},
+  {fruit:'🍇', quote:'Courage grows when you face your fears gently.'},
+  {fruit:'🌻', quote:'You are blooming beautifully, one day at a time.'},
+];
+
+async function initStage5() {
+  if(animFrame) cancelAnimationFrame(animFrame);
+
+  // Complete session & update streak
+  await apiPost('/session/progress', {device_id:STATE.deviceId, stages_completed:5, completed:true});
+  const streakData = await apiPost('/streak/update', {device_id:STATE.deviceId});
+  if(streakData) STATE.streak = streakData.streak || STATE.streak;
+
+  await awardBadge('growth_star');
+  await awardBadge('calm_mind');
+
+  // Load fresh badges
+  const badgeData = await apiGet('/badges/'+STATE.deviceId);
+  const badges = badgeData?.badges || STATE.badges;
+
+  const badgeDisplay = document.getElementById('badge-display');
+  badgeDisplay.innerHTML = '';
+  badges.forEach((b,i) => {
+    const el = document.createElement('div');
+    el.className = 'badge-item';
+    el.style.animationDelay = (i*0.12)+'s';
+    el.innerHTML = `<span class="bicon">${b.badge_icon}</span><div class="bname">${b.badge_name}</div>`;
+    badgeDisplay.appendChild(el);
+  });
+
+  const aff = AFFIRMATIONS[Math.floor(Math.random()*AFFIRMATIONS.length)];
+  document.getElementById('affirmation-fruit').textContent = aff.fruit;
+  document.getElementById('affirmation-quote').textContent = `"${aff.quote}"`;
+
+  // Update streak display
+  const userData = await apiGet('/user/'+STATE.deviceId);
+  const u = userData?.user || {};
+  document.getElementById('final-streak').textContent = u.streak || STATE.streak;
+  document.getElementById('final-total').textContent = u.total_sessions || STATE.totalSessions;
+
+  // Confetti
+  createParticles(STATE.mood);
+}
+
+async function awardBadge(key) {
+  const data = await apiPost('/badges/award', {device_id:STATE.deviceId, badge_key:key});
+  return data;
+}
+
+/* ══════════════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
