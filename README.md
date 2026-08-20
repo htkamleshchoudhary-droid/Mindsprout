@@ -1,17 +1,5 @@
 A 5-stage mental wellness game where you grow a plant by improving your mood, focus, and social confidence — one day at a time.
 
-📁 File Structure
-MindSprout/
-├── frontend/
-│   └── index.html          ← Entire game UI (HTML + CSS + JS)
-├── backend/
-│   ├── app.py              ← Flask server entry point
-│   ├── routes.py           ← All API endpoints
-│   └── requirements.txt    ← Python dependencies
-├── database/
-│   └── db.py               ← SQLite database setup & helpers
-└── README.md
-
 🚀 Setup Instructions
 1. Install Python dependencies
 bashcd backend
@@ -33,7 +21,14 @@ StageNamePlant Growth1Mood Check🌰 Seed planted2Emotion Puzzle🌱 Sapling spr
 MethodEndpointDescriptionGET/api/healthServer health checkGET/api/user/<device_id>Get or create userPOST/api/session/startStart today's sessionPOST/api/session/progressUpdate stage progressGET/api/streak/<device_id>Get streak infoPOST/api/streak/updateUpdate streak on completionGET/api/badges/<device_id>Get all earned badgesPOST/api/badges/awardAward a badge
 
 🏆 Badges
-BadgeIconEarned ByCalm Mind🌿Completing Stage 2Brave Speaker🗣️Completing Stage 3Focus Master🎯Completing Stage 4Growth Star✨Completing all 5 stagesFirst Bloom🌸First ever completion7-Day Streak🔥7 days in a row30-Day Streak💎30 days in a row
+BadgeIconEarned ByCalm Mind🌿 
+Completing Stage 2Brave Speaker
+🗣️Completing Stage 3Focus Master
+🎯Completing Stage 4Growth Star
+✨Completing all 5 stagesFirst Bloom
+🌸First ever completion7-Day Streak
+🔥7 days in a row30-Day Streak
+💎30 days in a row
 
 🎵 Audio
 Background music is generated dynamically using the Web Audio API — no external files needed. Each mood has its own ambient soundscape:
